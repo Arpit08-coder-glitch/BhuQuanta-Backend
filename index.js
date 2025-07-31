@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs-extra');
@@ -6,7 +7,7 @@ const path = require('path');
 const nodemailer = require('nodemailer');
 
 const app = express();
-const PORT = 5006;
+const PORT = process.env.PORT || 5006;
 
 // Middleware
 app.use(cors());
@@ -34,12 +35,12 @@ function loadOrCreateWorkbook() {
 
 // Nodemailer transporter (configure with your email credentials)
 const transporter = nodemailer.createTransport({
-    host: 'smtpout.secureserver.net',
-    port: 465,
-    secure: true, // true for port 465, false for 587
+    host: process.env.EMAIL_HOST,
+    port: parseInt(process.env.EMAIL_PORT),
+    secure: process.env.EMAIL_SECURE === 'true', // true for port 465, false for 587
     auth: {
-      user: 'support@quantasip.com',     // your full GoDaddy email
-      pass: 'Support@1234',  // your actual email password
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
     },
   });
 
@@ -55,7 +56,7 @@ app.post('/send-otp', async (req, res) => {
 
   try {
     await transporter.sendMail({
-      from: 'support@quantasip.com',
+      from: process.env.EMAIL_FROM,
       to: email,
       subject: 'Your OTP for Verification',
       text: `Your OTP is ${otp}`,
