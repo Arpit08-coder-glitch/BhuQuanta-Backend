@@ -94,10 +94,28 @@ app.post('/verify-otp', (req, res) => {
     return res.status(400).json({ error: 'Email and OTP are required' });
   }
 
-  res.status(200).json({ message: 'OTP verified successfully (simulated)' });
+  const workbook = loadOrCreateWorkbook();
+  const sheet = workbook.Sheets['Logs'];
+  const data = XLSX.utils.sheet_to_json(sheet);
+
+  const latestEntry = [...data]
+    .reverse()
+    .find((entry) => entry.Email === email);
+
+  if (!latestEntry) {
+    return res.status(400).json({ error: 'No OTP found for this email' });
+  }
+
+  const storedOtp = String(latestEntry.OTP);
+  if (storedOtp === String(otp)) {
+    return res.status(200).json({ success: true, message: 'OTP verified successfully' });
+  } else {
+    return res.status(401).json({ error: 'Invalid OTP' });
+  }
 });
+
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
 });
